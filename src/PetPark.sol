@@ -1,12 +1,27 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
+
 pragma solidity ^0.8.13;
 
-import "@openzeppelin/contracts@4.2.0/access/Ownable.sol";
+contract PetPark {
 
-contract PetPark is Ownable {
+    address public owner;
+    constructor() {
+        // Set the transaction sender as the owner of the contract.
+        owner = msg.sender;
+    }
+
+    // Modifier to check that the caller is the owner of
+    // the contract.
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Not owner");
+        // Underscore is a special character only used inside
+        // a function modifier and it tells Solidity to
+        // execute the rest of the code.
+        _;
+    }
 
     enum AnimalType {
-        Null,
+        None,
         Fish,
         Cat,
         Dog,
@@ -24,7 +39,7 @@ contract PetPark is Ownable {
         uint8 age;
     }
 
-    mapping(AnimalType => uint256) currentAnimalsInPark;
+    mapping(AnimalType => uint256) public animalCounts;
     mapping(address => AnimalType) borrowedList;
     mapping(address => Callers) calledList;
 
@@ -33,15 +48,15 @@ contract PetPark is Ownable {
     event Returned(AnimalType indexed _animalType);
 
     function add(AnimalType _animalType, uint256 _count) external onlyOwner {
-        require(_animalType != AnimalType.Null, "Animal provided is invalid");
-        currentAnimalsInPark[_animalType] += _count;
+        require(_animalType != AnimalType.None, "Invalid animal");
+        animalCounts[_animalType] += _count;
         emit Added(_animalType, _count);
     }
 
     function borrow(uint8 _age, Gender _gender, AnimalType _animalType) external {
-        require(_animalType != AnimalType.Null, "Animal provided is invalid");
-        require(borrowedList[msg.sender] == AnimalType.Null, "Already borrowed an animal, return it to borrow another one.");
-        require(currentAnimalsInPark[_animalType] > 0, "No animals of the specified type are in the park currently for borrowing.");
+        require(_animalType != AnimalType.None, "Invalid animal type");
+        require(borrowedList[msg.sender] == AnimalType.None, "Already adopted a pet");
+        require(animalCounts[_animalType] > 0, "Selected animal not available");
         require(_age > 0, "Come on, this can't be right. Age is seriously 0?");
 
         // Address hasn't called before
@@ -55,22 +70,22 @@ contract PetPark is Ownable {
         }
 
         if (_gender == Gender.Male){
-            require((_animalType == AnimalType.Dog || _animalType == AnimalType.Fish), "Men can only borrow Dog or Fish");
+            require((_animalType == AnimalType.Dog || _animalType == AnimalType.Fish), "Invalid animal for men");
         }
         else {
             require((_age < 40 && _animalType == AnimalType.Cat), "Women under age of 40 cannot borrow Cats");
         }
 
         borrowedList[msg.sender] = _animalType;
-        currentAnimalsInPark[_animalType] -=1;
+        animalCounts[_animalType] -=1;
         emit Borrowed(_animalType);
     }
 
     function giveBackAnimal() external {
-        require(borrowedList[msg.sender] != AnimalType.Null, "You haven't borrowed any animal to return.");
+        require(borrowedList[msg.sender] != AnimalType.None, "You haven't borrowed any animal to return.");
         AnimalType _borrowedAnimalType = borrowedList[msg.sender];
-        borrowedList[msg.sender] = AnimalType.Null;
-        currentAnimalsInPark[_borrowedAnimalType] +=1;
+        borrowedList[msg.sender] = AnimalType.None;
+        animalCounts[_borrowedAnimalType] +=1;
         emit Returned(_borrowedAnimalType);
     }
     
