@@ -56,7 +56,7 @@ contract PetPark {
     function borrow(uint8 _age, Gender _gender, AnimalType _animalType) external {
         require(_animalType != AnimalType.None, "Invalid animal type");
         require(animalCounts[_animalType] > 0, "Selected animal not available");
-        require(_age > 0, "Come on, this can't be right. Age is seriously 0?");
+        require(_age > 0, "Age is 0");
 
         // Address hasn't called before
         if (calledList[msg.sender].age == 0) {
