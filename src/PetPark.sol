@@ -73,7 +73,7 @@ contract PetPark {
             require((_animalType == AnimalType.Dog || _animalType == AnimalType.Fish), "Invalid animal for men");
         }
         else {
-            require((_age < 40 && _animalType == AnimalType.Cat), "Women under age of 40 cannot borrow Cats");
+            require((_age > 40 && _animalType == AnimalType.Cat), "Invalid animal for women under 40");
         }
 
         borrowedList[msg.sender] = _animalType;
