@@ -55,7 +55,6 @@ contract PetPark {
 
     function borrow(uint8 _age, Gender _gender, AnimalType _animalType) external {
         require(_animalType != AnimalType.None, "Invalid animal type");
-        require(borrowedList[msg.sender] == AnimalType.None, "Already adopted a pet");
         require(animalCounts[_animalType] > 0, "Selected animal not available");
         require(_age > 0, "Come on, this can't be right. Age is seriously 0?");
 
@@ -65,9 +64,11 @@ contract PetPark {
             calledList[msg.sender].gender = _gender;
         }
         else {
-            require(calledList[msg.sender].age == _age, "Caller's age doesn't match the original caller.");
-            require(calledList[msg.sender].gender == _gender, "Caller's gender doesn't match the original caller.");
+            require(calledList[msg.sender].age == _age, "Invalid Age");
+            require(calledList[msg.sender].gender == _gender, "Invalid Gender");
         }
+
+        require(borrowedList[msg.sender] == AnimalType.None, "Already adopted a pet");
 
         if (_gender == Gender.Male){
             require((_animalType == AnimalType.Dog || _animalType == AnimalType.Fish), "Invalid animal for men");
@@ -75,6 +76,7 @@ contract PetPark {
         else {
             require((_age > 40 && _animalType == AnimalType.Cat), "Invalid animal for women under 40");
         }
+
 
         borrowedList[msg.sender] = _animalType;
         animalCounts[_animalType] -=1;
